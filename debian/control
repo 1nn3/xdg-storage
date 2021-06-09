@@ -1,0 +1,17 @@
+Source: xdg-storage
+Maintainer: nobody <nobody>
+Build-Depends: debhelper (>= 9)
+Priority: optional
+Section: net
+Standards-Version: 4.3.0
+
+Package: xdg-storage
+Architecture: all
+Depends: xdg-user-dirs,
+         xdg-user-dirs-gtk,
+         xdg-utils,
+         ${misc:Depends},
+         ${shlibs:Depends}
+Description: Dateien anhand des MIME-Type sortieren/archivieren
+ Sortiert Dateien anhand des MIME-Type und verschiebt diese
+ entsprechend in die xdg-user-dirs Verzeichnisse.

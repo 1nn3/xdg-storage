@@ -1,0 +1,32 @@
+xdg-storage - Dateien anhand des MIME-Type sortieren/archivieren
+
+Das Skript sortiert Dateien anhand des MIME-Type und verschiebt diese
+entsprechend in die xdg-user-dirs Verzeichnisse.
+
+Die Konfiguration ist ein POSIX Shell-Script Fragment.  Pfad:
+XDG_CONFIG_HOME/xdg-storage/config
+
+Dateien werden ins Unterverzeichnis XDG_STORAGE_DIR/type/subtype
+verschoben.  Default: $HOME/Storage
+
+Existiert das Verzeichnis XDG_STORAGE_DIR nicht, werden Dateien
+entsprechend in die xdg-user-dirs Verzeichnisse verschoben. Wobei gilt:
+
+	- text/* nach XDG_DOCUMENTS_DIR/type/subtype
+
+	- image/* nach XDG_PICTURES_DIR/type/subtype
+
+	- audio/* nach XDG_MUSIC_DIR/type/subtype
+
+	- video/* nach XDG_VIDEOS_DIR/type/subtype
+
+Alle anderen Typen nach $HOME/type/subtype.
+
+Ist das Paket xdg-user-dirs nicht installiert, wird auch nach
+$HOME/type/subtype verschoben.
+
+Mein Workflow
+
+	# aktuell werden Verz. ignoriert
+	cd ~/Downloads && xdg-storage -i -d ./Storage *
+
