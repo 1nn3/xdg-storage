@@ -1,0 +1,118 @@
+#!/usr/bin/env perl
+
+use v5.12;
+
+use Image::Magick;
+use Getopt::Long;
+
+my $sqare;
+my $landscape;
+my $portrait;
+my $equals;
+my $greater;
+my $smaller;
+
+# Kommandozeilenargumente einlesen
+GetOptions(
+    "sqare"     => \$sqare,
+    "landscape" => \$landscape,
+    "portrait"  => \$portrait,
+    "equals=i"  => \$equals,
+    "greater=i"  => \$greater,
+    "smaller=i"  => \$smaller,    
+) || die("Error in command-line-arguments: $!");
+
+for (<STDIN>) {
+	chomp;
+	my $print = 0;
+
+	my $image = Image::Magick->new;
+	$image->Read($_);
+
+	my ($height, $width) = $image->Get('height', 'width');
+
+	if ($portrait && $height > $width) {
+		$print = 1;
+	}
+
+	if ($landscape && $width > $height) {
+		$print = 1;
+	}
+
+	if ($sqare && $height == $width) {
+		$print = 1;
+	}
+
+	if ($equals) {
+		if ($equals == $width && $equals == $height) {
+			$print = 1;
+		}
+	}
+
+	if ($greater) {
+		if ($greater < $width || $greater < $height) {
+			$print = 1;
+		}
+	}
+
+	if ($smaller) {
+		if ($smaller > $width || $smaller > $height) {
+			$print = 1;
+		}
+	}
+
+	if ($print) {
+		say ($_);
+	}
+}
+
+=pod
+
+=encoding utf8
+
+=head1 NAME
+
+image-is - Bildformat abfragen
+
+=head1 SYNOPSIS
+
+B<image-is> [--sqare] [--landscape] [--portait] *.jpg *.png
+
+lsimages | B<image-is> --smaller 361 | xargs rm
+
+=head1 DESCRIPTION
+
+Listet alle Bilder im angegebenen Format auf.
+
+=head1 OPTIONS
+
+=over
+
+=item --sqare
+
+Quadrat
+
+=item --landscape
+
+Rechteck querformat
+
+=item --portrait
+
+Recheck hochkant
+
+=item --equals N
+
+Größe ist gleich N Pixel in Höhe oder Breite.
+
+=item --greater N
+
+Größe ist größer als N Pixel in Höhe oder Breite.
+
+=item --smaller N    
+
+Größe ist kleiner als N Pixel in Höhe oder Breite.
+
+=back
+
+=cut
+

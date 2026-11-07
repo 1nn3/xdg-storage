@@ -1,0 +1,10 @@
+#!/usr/bin/env sh
+
+threads_num=${threads_num:-8}
+find "$@" -type f \
+	| xargs -d'\n' -P$threads_num -I{} sh -c '
+if file -b --mime-type "{}" | grep "^video/" 2>/dev/null >&2; then
+	echo "{}"
+fi
+'
+

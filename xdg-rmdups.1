@@ -1,0 +1,40 @@
+.\" Manpage for xdg-rmdups by user <user@host>
+
+.TH "xdg-rmdups" "1" "2013-12-04" "user" "XDG Storage"
+
+.SH NAME
+
+xdg-rmdups - Entfernt doppelte Dateien aus dem Storage
+
+.SH SYNOPSIS
+
+xdg-rmdups [ -d path/to/XDG_STORAGE_DIR ]
+
+.SH DESCRIPTION
+
+Entfernt doppelte Dateien (Duplikate) aus XDG_STORAGE_DIR, indem es
+diese nach $HOME/Backup/ verschiebt.
+
+.SH OPTIONS
+
+.SS -h, --help
+
+Shows help options.
+
+.SS -d, --directory
+
+Alt. XDG_STORAGE_DIR.
+
+.SS -b, --backup
+
+Alt. backup directory.  Default: $HOME/Backup/
+
+Wenn kein Backup benötigt wird:
+
+.nf
+xdg-rmdups -b /dev/null
+
+.SH SEE ALSO
+
+.BR xdg-storage (1)
+

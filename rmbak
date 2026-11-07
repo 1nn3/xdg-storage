@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+# Entfernt Sicherheitskopien, wenn das Original nicht mehr vorhanden ist 
+find -type f -atime +31 -name "*~" | while read REPLY; do
+	orig="`echo $REPLY | sed '/~$/s/~$//'`"
+	if [ ! -e "$orig" ]; then
+		rm -v -i -- "$REPLY"	
+	fi
+done
+

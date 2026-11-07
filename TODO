@@ -1,0 +1,4 @@
+TODO
+
+* Use rename(1p) in mv2md5 and mv2sha256 to rename the files
+

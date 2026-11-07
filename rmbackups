@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+# Entfernt Sicherheitskopien, wenn das Original nicht mehr vorhanden ist 
+rmbak # the i in ibackups
+find -type f -atime +31 \
+	-iname "*.bak" \
+	-iname "*.old" \
+	-iname "*_" \

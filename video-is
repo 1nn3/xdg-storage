@@ -1,0 +1,153 @@
+#!/usr/bin/perl
+use strict;
+use warnings;
+use utf8;
+use Glib qw(TRUE FALSE);
+use GStreamer -init;
+
+# eingabe datei
+my $file='test.avi';
+# ausgabe datei
+my $ofile='test.jpg';
+# position im video
+my $pos=3_000_000_000; # ns
+my $scale_w=720;
+my $scale_h=210;
+
+my @scales=('video/x-raw-yuv');
+push(@scales,"width=$scale_w") if($scale_w);
+push(@scales,"height=$scale_h") if($scale_h);
+
+#pipeline erzeugen
+my $pipeline = GStreamer::Pipeline->new("my_pipeline");
+my( $src, $decoder,
+    $vcolor, $vscale, $vcaps, $vjpeg, $vsink,
+    $aqueue, $asink ) =
+  GStreamer::ElementFactory -> make(
+    filesrc          => "data_src",
+    decodebin        => "data_decoder",
+
+    ffmpegcolorspace => "video_colorspace",
+    videoscale       => "video_scale",
+    capsfilter       => "video_caps",
+    jpegenc          => "video_jpeg",
+    fakesink         => "video_sink",
+
+    queue            => "audio_queue",
+    fakesink         => "audio_sink",
+  );
+
+$pipeline->add($src, $decoder, $vcolor, $vscale, $vcaps, $vjpeg, $vsink, $aqueue, $asink);
+
+$src   ->link($decoder);
+$vcolor->link($vscale, $vcaps, $vjpeg, $vsink);
+$aqueue->link($asink);
+
+$vcaps->set('caps', GStreamer::Caps->from_string(join(', ',@scales)));
+
+$pipeline->get_by_name('data_decoder')->signal_connect(pad_added => sub{
+    my $element=shift;
+    my $pad=shift;
+
+    my $type='unknown';
+    $type=lc($1) if($pad->get_caps()->to_string()=~m!^([^/]+)!);
+
+    if($type eq 'video' || $type eq 'image')
+    {
+      $pad->link($vcolor->get_pad('sink'));
+      #print "link ".$element->get_name()." video (".$pad->get_name().") to ".$vcolor->get_name()."\n";
+    }
+    elsif($type eq 'audio')
+    {
+      $pad->link($aqueue->get_pad('sink'));
+      #print "link ".$element->get_name()." audio (".$pad->get_name().") to ".$aqueue->get_name()."\n";
+    }
+    else
+    { print "not link $type from ".$pad->get_name()."\n"; }
+  });
+$src->set('location' => $file);
+
+# Puffer für die Ausgabe
+my $buffer=undef;
+
+# Listener für Frame einrichten
+$vsink->set('signal-handoffs' => TRUE);
+$vsink->signal_connect(handoff => sub{
+    return TRUE if($buffer);
+
+    my $query=GStreamer::Query::Position->new('time');
+    $vsink->query($query);
+    my (undef, $pos_now)=$query->position;
+
+    return TRUE if($pos_now<$pos);
+
+    $buffer=$_[1];
+
+    return TRUE;
+  });
+
+# video abspielen
+$pipeline->set_state("playing");
+my $seek=1;
+my $bus=$pipeline->get_bus();
+while (1)
+{
+  # alle nahrichten vom bus holen
+  my $message = $bus -> poll("any", 0);
+
+
+  # wenn keine Nachrichten warten
+  unless (defined $message)
+  {
+    # Schleife beenden wenn wir ein Bild haben
+    last if($buffer);
+
+    select(undef,undef,undef,0.25);
+    #print "WAIT ".time()."\n";
+    next;
+  }
+
+
+  # beenden wenn das Video am Ende ist,
+  # oder ein Fehler auftrat
+  last if ( $message->type & "eos");
+  if ( $message->type & "error"   || $message->type & "warning" )
+  {
+    print "ERROR:\n";
+    print $message->error()."\n";
+    print $message->debug()."\n";
+    last;
+  }
+
+
+  # wenn sich det Zusand eines pileelemts geändert hat
+  if($message->type & "state-changed")
+  {
+    # Name des Elementes ermitteln
+    my $name=$message->src()->get_name() || 'UNDEF';
+    #print "$name => ".$message->new_state()."\n";
+
+    # es wurde noch nicht zu der stelle gespringen,
+    # der Name stimmt und die pipeline ist "playing"
+    if($seek && $name eq 'my_pipeline' && $message->new_state() eq 'playing')
+    {
+      # zur gewünschten Stelle springen
+      $pipeline->seek(1,'time','flush','set',$pos,'none',0) || last;
+      $seek--;
+    }
+  }
+}
+# pipeline stoppen
+$pipeline->set_state("null");
+
+# wenn ein bild da ist
+if($buffer)
+{
+  # bild in Datei schreiben.
+  #open(my $fh, '>', $ofile) or die("Error open $ofile! ($!)");
+  open(my $fh, '| display -') or die("Error open $ofile! ($!)");
+  binmode($fh);
+  print $fh $buffer->data();
+  close($fh);
+}
+

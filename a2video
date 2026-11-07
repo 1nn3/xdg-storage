@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+# Wandelt aus Sicherheitsgründen Videos nach MP4 neu um
+set -xeuo pipefail
+for i; do
+	fn="`basename "$i"`.mp4"
+	if test -e "$fn"; then
+		# file already exsist
+		continue
+	fi
+	if file -b --mime-type "$i" | grep -E -v '^(audio|video)/'; then
+		# nor audio nor video file
+		continue
+	fi
+	ffmpeg -y -i "$i" -map 0:v -map 0:a? -c:v libx264 -preset slow -crf 18 -c:a aac -b:a 128k -pix_fmt yuv420p -movflags +faststart "$fn"
+done
+

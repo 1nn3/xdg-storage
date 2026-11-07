@@ -1,0 +1,8 @@
+*~
+*.bak
+*.buildinfo
+*.changes
+*.deb
+debian/autoreconf.after
+debian/autoreconf.before
+*.swp

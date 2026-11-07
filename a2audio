@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+# Wandelt nach MP3 neu um
+set -xeuo pipefail
+for i; do
+	fn="`basename "$i"`.mp3"
+	if test -e "$fn"; then
+		# file already exsist
+		continue
+	fi
+	if file -b --mime-type "$i" | grep -E -v '^(audio|video)/'; then
+		# nor audio nor video file
+		continue
+	fi
+	# See also: https://trac.ffmpeg.org/wiki/Encode/MP3
+	ffmpeg -i "$i" -codec:a libmp3lame -qscale:a 6 -f mp3 -y "$fn"
+done
+

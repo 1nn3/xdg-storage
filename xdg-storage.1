@@ -1,0 +1,46 @@
+.\" Manpage for xdg-storage by user <user@host>
+
+.TH "xdg-storage" "1" "2013-12-04" "user" "XDG Storage"
+
+.SH NAME
+
+xdg-storage - Sortiert Dateien anhand des MIME-Type ins Storage
+
+.SH SYNOPSIS
+
+xdg-storage [ -d path/to/XDG_STORAGE_DIR ] <files…>
+
+.SH DESCRIPTION
+
+Sortiert Dateien anhand des MIME-Type ins Verzeichnis XDG_STORAGE_DIR.
+Hinweis: Verz. werden ignoriert!
+
+.SH OPTIONS
+
+.SS -h, --help
+
+Shows help options.
+
+.SS -d, --directory
+
+Alt. XDG_STORAGE_DIR.
+
+.SS -i, --ignore-directorys
+
+Verz. nicht einsortieren. Standardmäßig werden Verz. wie Dat. abgearbeitet.
+
+.SH FILES
+
+.SS XDG_CONFIG_HOME/xdg-storage/config
+
+Konfiguration.
+
+.SH Mein Workflow
+
+.nf
+cd ~/Downloads && xdg-storage -i -d ./Storage * # aktuell werden Verz. ignoriert
+
+.SH SEE ALSO
+
+.BR xdg-rmdups (1),
+.BR xdg-storage (5)

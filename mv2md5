@@ -1,0 +1,81 @@
+#!/usr/bin/env bash
+# Dateien nach MD5 umbenennen
+
+set -euo pipefail
+
+usage () {
+	cat <<!
+Dateien nach MD5 umbenennen
+
+Usage: $0 [--suffix=integer] path/to/file…
+
+--suffix=integer
+	Es trennen --suffix <integer> dots den suffix vom Dateinamen
+	--suffix=last Letzter dot trennt den suffix
+	--suffix=first Erster dot trennt den suffix (default)
+!
+}
+
+TEMP=$(getopt -o 'hs:' --long 'help,suffix:' -n "$0" -- "$@")
+
+if [ $? -ne 0 ]; then
+	usage
+	echo 'Terminating...' >&2
+	exit 1
+fi
+
+# Note the quotes around "$TEMP": they are essential!
+eval set -- "$TEMP"
+unset TEMP
+
+while true; do
+	case "$1" in
+		'-h'|'--help')
+			echo 'Option -h, --help'
+			usage
+			shift
+			exit
+		;;
+		'-s'|'--suffix')
+			echo "Option -s, --suffix; argument '$2'"
+			suffix="$2";
+			shift 2
+			continue
+		;;
+		'--')
+			shift
+			break
+		;;
+		*)
+			echo 'Internal error!' >&2
+			exit 1
+		;;
+	esac
+done
+
+case "${suffix:-first}" in
+	none)
+		# Letzter dot trennt den suffix
+		command='mv -f -b "$i" "$(dirname "$1")/$(md5sum "$i" | cut -b -32).${i##*.}"'
+	;;
+	last)
+		# Letzter dot trennt den suffix
+		command='mv -f -b "$i" "$(dirname "$1")/$(md5sum "$i" | cut -b -32).${i##*.}"'
+	;;
+	first)
+		# Erster dot trennt den suffix
+		command='mv -f -b "$i" "$(dirname "$1")/$(md5sum "$i" | cut -b -32).${i#*.}"'
+	;;
+	[0-9]+)
+		# Es trennen --suffix <integer> dots den suffix
+		for (( j=1; j<=$suffix; j++ )); do
+			dots="$dots*."
+		done
+		command='mv -f -b "$i" "$(dirname "$1")/$(md5sum "$i" | cut -b -32).${i#$dots}"'
+	;;
+esac
+
+for i; do
+	eval $command || continue
+done
+
